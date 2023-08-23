@@ -3,6 +3,8 @@ package com.shopmax.entity;
 import java.time.LocalDateTime;
 
 import com.shopmax.constant.itemSellStatus;
+import com.shopmax.dto.ItemFormDto;
+import com.shopmax.exception.OutOfStockException;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,5 +46,31 @@ public class Item extends BaseEntity{
 
 	@Enumerated(EnumType.STRING) // enum의 이름을 DB에 저장 
 	private itemSellStatus itemSellStatus; //판매상태(SELL, SOLD_OUT) -> item_sell_status
+	
+	// item 엔티티 업데이트
+	public void updateItem(ItemFormDto itemFormDto) {
+		this.itemNm = itemFormDto.getItemNm();
+		this.price = itemFormDto.getPrice();
+		this.stockNumber = itemFormDto.getStockNumber();
+		this.itemDetail = itemFormDto.getItemDetail();
+		this.itemSellStatus = itemFormDto.getItemSellStatus();
+	}
+	
+	// 재고를 감소시키는 메소드
+	public void removeStock(int stockNumber) {
+		int restStock = this.stockNumber - stockNumber;	// 남은 재고 수량
+		
+		if(restStock < 0) {
+			throw new OutOfStockException("상품의 재고가 부족합니다. 현재 재고 수량 :" + this.stockNumber);
+			
+		}
+		this.stockNumber = restStock;	// 남은 재고수량 반영
+		
+	}
+	
+	// 재고를 증가
+	public void addStock(int stockNumber) {
+		this.stockNumber += stockNumber;
+	}
 	
 }

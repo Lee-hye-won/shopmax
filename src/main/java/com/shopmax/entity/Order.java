@@ -13,7 +13,7 @@ import lombok.*;
 @Table(name = "orders")
 @Getter
 @Setter
-@ToString
+//@ToString
 public class Order extends BaseEntity{
 
 	@Id
@@ -22,7 +22,7 @@ public class Order extends BaseEntity{
 	private Long id;
 	
 	@Column(name = "order_date")
-	private LocalDateTime order_date;
+	private LocalDateTime orderDate;
 	
 	@Enumerated(EnumType.STRING)
 	private OrderStatus orderStatus;
@@ -37,4 +37,44 @@ public class Order extends BaseEntity{
 	private List<OrderItem> orderItems = new ArrayList<>();
 	
 
+	public void addOrderItem(OrderItem orderItem) {
+		this.orderItems.add(orderItem);
+		orderItem.setOrder(this);	// ★양방향 참조관계 일때는 orderItem 객체에도 order객체를 세팅한다.
+	}
+	
+	// order객체를 생성해준다.
+	public static Order createOrder(Member member, List<OrderItem> orderItemList) {
+		Order order = new Order();
+		order.setMember(member);
+		
+		for(OrderItem orderItem : orderItemList) {
+			order.addOrderItem(orderItem);
+		}
+		
+		order.setOrderStatus(OrderStatus.ORDER);
+		order.setOrderDate(LocalDateTime.now());
+		
+		return order;
+	}
+	
+	// 총 주문 금액
+	public int getTotalPrice() {
+		int totalPrice = 0;
+		for(OrderItem orderItem : orderItems) {
+			totalPrice += orderItem.getTotalPrice();
+		}
+		return totalPrice;
+	}
+	
+	// 주문취소
+	public void cancelOrder() {
+		this.orderStatus = OrderStatus.CANCEL;
+		
+		// 재고 업데이트
+		for(OrderItem orderItem: orderItems) {
+			orderItem.cancel();
+		}
+	}
+	
+	
 }
